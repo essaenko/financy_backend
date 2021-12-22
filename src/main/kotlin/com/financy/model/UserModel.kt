@@ -1,0 +1,54 @@
+package com.financy.model
+
+import kotlinx.serialization.Serializable
+import org.ktorm.database.Database
+import org.ktorm.entity.Entity
+import org.ktorm.entity.sequenceOf
+import org.ktorm.schema.*
+import java.time.LocalDate
+
+val Database.Users get() = this.sequenceOf(UsersSchema)
+
+object UsersSchema: Table<User>("t_users") {
+  val id = int("id").primaryKey().bindTo { it.id }
+  var name = varchar("name").bindTo { it.name }
+  var email = varchar("email").bindTo { it.email }
+  var password = varchar("password").bindTo { it.password }
+  var accountId= int("account_id").bindTo { it.accountId }
+  var createdAt = date("created_at").bindTo { it.createdAt }
+  var updatedAt = date("updated_at").bindTo { it.updatedAt }
+}
+
+@Serializable
+data class Credentials(
+  val email: String? = null,
+  val password: String? = null,
+)
+
+@Serializable
+data class RegistrationCredentials(
+  val email: String? = null,
+  val name: String? = null,
+  val password: String? = null,
+)
+
+@Serializable
+data class UserData(
+  val id: Int,
+  var name: String,
+  var email: String,
+  var createdAt: String,
+  var updatedAt: String?
+)
+
+interface User: Entity<User> {
+  companion object: Entity.Factory<User>()
+
+  val id: Int
+  var name: String
+  var email: String
+  var password: String
+  var accountId: Int?
+  var createdAt: LocalDate
+  var updatedAt: LocalDate?
+}

@@ -19,11 +19,11 @@ object TransactionsSchema: Table<Transaction>("t_transactions") {
   val type = enum<TransactionType>("type").bindTo { it.type }
   val cost = int("cost").bindTo { it.cost }
   val comment = varchar("comment").bindTo { it.comment }
-  val accountId = int("account_id").bindTo { it.accountId }
-  val userId = int("user_id").bindTo { it.userId }
-  val categoryId = int("category_id").bindTo { it.categoryId }
-  val from = int("from_id").bindTo { it.from }
-  val to = int("to_id").bindTo { it.to }
+  val accountId = int("account_id").references(AccountsSchema) { it.account }
+  val userId = int("user_id").references(UsersSchema) { it.user }
+  val categoryId = int("category_id").references(CategoriesSchema) { it.category }
+  val from = int("from_id").references(PaymentMethodSchema) { it.from }
+  val to = int("to_id").references(PaymentMethodSchema) { it.to }
   val createdAt = date("created_at").bindTo { it.createdAt }
   val updatedAt = date("updated_at").bindTo { it.updatedAt }
 }
@@ -31,26 +31,47 @@ object TransactionsSchema: Table<Transaction>("t_transactions") {
 @Serializable
 data class TransactionData(
   val id: Int,
-  val accountId: Int,
-  val userId: Int,
-  val categoryId: Int,
+  val account: AccountData,
+  val user: UserData,
+  val category: CategoryData,
   val type: TransactionType,
   val cost: Int,
-  val from: Int,
-  val to: Int? = null,
+  val from: PaymentMethodData,
+  val to: PaymentMethodData?,
+  val date: String,
   var comment: String,
-  val createdAt: String?,
-  var updatedAt: String?
-)
+  val createdAt: String,
+  var updatedAt: String?,
+) {
+  companion object {
+    fun getSerializable(transaction: Transaction): TransactionData {
+      return TransactionData(
+        id = transaction.id,
+        account = AccountData.getSerializable(transaction.account),
+        user = UserData.getSerializable(transaction.user),
+        category = CategoryData.getSerializable(transaction.category),
+        type = transaction.type,
+        cost = transaction.cost,
+        from = PaymentMethodData.getSerializable(transaction.from),
+        to = if (transaction.to != null) PaymentMethodData.getSerializable(transaction.to!!) else null,
+        comment = transaction.comment,
+        date = transaction.createdAt.toString(),
+        createdAt = transaction.createdAt.toString(),
+        updatedAt = transaction.updatedAt.toString(),
+      )
+    }
+  }
+}
 
 @Serializable
 data class TransactionInitData (
-  val type: String,
-  val cost: Int,
-  val comment: String,
-  val from: Int,
+  val id: Int? = null,
   val to: Int? = null,
+  val type: String,
   val category: Int,
+  val cost: Int,
+  val comment: String = "",
+  val from: Int,
   val date: Long? = null,
 )
 
@@ -58,14 +79,14 @@ interface Transaction: Entity<Transaction> {
   companion object: Entity.Factory<Transaction>()
 
   val id: Int
-  var accountId: Int
-  var userId: Int
-  var categoryId: Int
+  var account: Account
+  var user: User
+  var category: Category
   var type: TransactionType
   var cost: Int
   var comment: String
-  var from: Int
-  var to: Int?
+  var from: PaymentMethod
+  var to: PaymentMethod?
   var createdAt: LocalDate
   var updatedAt: LocalDate?
 }

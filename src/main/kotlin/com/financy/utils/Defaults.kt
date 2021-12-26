@@ -1,11 +1,17 @@
 package com.financy.utils
 
 import com.financy.model.CategoryType
+import kotlinx.serialization.Serializable
 
 data class DefaultCategoryData(
    val name: String,
    val type: CategoryType,
    val children: Array<DefaultCategoryData>? = null,
+)
+
+@Serializable
+data class DefaultInstanceInit(
+  val id: Int,
 )
 
 val defaultCategoriesData = arrayOf<DefaultCategoryData>(
@@ -33,6 +39,10 @@ val defaultCategoriesData = arrayOf<DefaultCategoryData>(
   DefaultCategoryData(
      name = "Unsorted",
      type = CategoryType.Outcome,
+  ),
+  DefaultCategoryData(
+    name = "Transfer",
+    type = CategoryType.Outcome,
   ),
   DefaultCategoryData(
      name = "Transport",

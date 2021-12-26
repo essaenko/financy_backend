@@ -5,6 +5,7 @@ import com.financy.controller.UserController
 import com.financy.model.Account
 import com.financy.model.AccountData
 import com.financy.model.User
+import com.financy.model.UserData
 import com.financy.utils.ApiResponse
 import com.financy.utils.ApiResponseStatus
 import com.financy.utils.Exceptions
@@ -28,18 +29,12 @@ fun Route.AccountControllerRoutes() {
         try {
           val user: User = UserController.getUser(userId);
 
-          if (user.accountId == null) {
+          if (user.account == null) {
             throw Error(Exceptions.NoUserAccountException.name)
           }
 
           try {
-            val account: Account = AccountController.getAccount(user.accountId!!)
-
-            call.respondText(Json.encodeToString(ApiResponse(status = ApiResponseStatus.Ok, null, AccountData(
-              id = account.id,
-              createdAt = account.createdAt.toString(),
-              updatedAt = account.updatedAt?.toString()
-            ))))
+            call.respondText(Json.encodeToString(ApiResponse(status = ApiResponseStatus.Ok, null, AccountData.getSerializable(user.account!!))))
           } catch (error: Error) {
             call.respondText(Json.encodeToString(ApiResponse(status = ApiResponseStatus.Error, error.localizedMessage, "")))
           }
@@ -60,11 +55,31 @@ fun Route.AccountControllerRoutes() {
 
           val account = AccountController.create(user);
 
-          call.respondText(Json.encodeToString(ApiResponse(status = ApiResponseStatus.Ok, null, AccountData(
-            id = account.id,
-            createdAt = account.createdAt.toString(),
-            updatedAt = account.updatedAt.toString(),
-          ))))
+          call.respondText(Json.encodeToString(ApiResponse(status = ApiResponseStatus.Ok, null, AccountData.getSerializable(account))))
+        } catch (error: Error) {
+          val log = LoggerFactory.getLogger("com.financy.app");
+          log.error(error);
+          call.respondText(Json.encodeToString(ApiResponse(status = ApiResponseStatus.Error, error.localizedMessage, "")))
+        }
+      } else {
+        call.respondText(Json.encodeToString(ApiResponse(status = ApiResponseStatus.Error, "InvalidTokenException", "")))
+      }
+    }
+
+    get("/api/v1/account/users") {
+      val principal = call.principal<JWTPrincipal>()
+      val userId = principal!!.payload.getClaim("user_id").asInt()
+
+      if (userId != null) {
+        try {
+          val user: User = UserController.getUser(userId)
+          if (user.account == null) {
+            throw Error(Exceptions.NoUserAccountException.name)
+          }
+
+          val accountUsers = AccountController.getUsers(user.account!!)
+
+          call.respondText(Json.encodeToString(ApiResponse(status = ApiResponseStatus.Ok, null, accountUsers.map { UserData.getSerializable(it) })))
         } catch (error: Error) {
           val log = LoggerFactory.getLogger("com.financy.app");
           log.error(error);

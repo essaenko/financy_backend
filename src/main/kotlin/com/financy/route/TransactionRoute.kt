@@ -7,6 +7,7 @@ import com.financy.model.TransactionData
 import com.financy.model.TransactionInitData
 import com.financy.utils.ApiResponse
 import com.financy.utils.ApiResponseStatus
+import com.financy.utils.DefaultInstanceInit
 import com.financy.utils.Exceptions
 import io.ktor.application.*
 import io.ktor.auth.*
@@ -28,28 +29,57 @@ fun Route.TransactionControllerRoutes() {
       } else {
         try {
           val user = UserController.getUser(userId)
-          if (user.accountId == null) {
+          if (user.account == null) {
             throw Error(Exceptions.NoUserAccountException.name)
           }
-
-          val account = AccountController.getAccount(user.accountId!!)
           val transactionInit = call.receive<TransactionInitData>()
 
-          val transaction = TransactionController.create(user, account, transactionInit)
+          val transaction = TransactionController.create(user, user.account!!, transactionInit)
 
-          call.respondText { Json.encodeToString(ApiResponse(ApiResponseStatus.Ok, null, TransactionData(
-            id = transaction.id,
-            type = transaction.type,
-            comment = transaction.comment,
-            cost = transaction.cost,
-            createdAt = transaction.createdAt.toString(),
-            updatedAt = transaction.updatedAt.toString(),
-            accountId = transaction.accountId,
-            userId = transaction.userId,
-            categoryId = transaction.categoryId,
-            from = transaction.from,
-            to = transaction.to,
-          ))) }
+          call.respondText { Json.encodeToString(ApiResponse(ApiResponseStatus.Ok, null, TransactionData.getSerializable(transaction))) }
+        } catch (error: Error) {
+          call.respondText { Json.encodeToString(ApiResponse(ApiResponseStatus.Error, error.localizedMessage, "")) }
+        }
+      }
+    }
+    post("/api/v1/transaction/update") {
+      val principal = call.principal<JWTPrincipal>()
+      val userId = principal!!.payload.getClaim("user_id").asInt()
+
+      if (userId == null) {
+        call.respondText(Json.encodeToString(ApiResponse(ApiResponseStatus.Error, "InvalidTokenException", "")))
+      } else {
+        try {
+          val user = UserController.getUser(userId)
+          if (user.account == null) {
+            throw Error(Exceptions.NoUserAccountException.name)
+          }
+          val transactionInit = call.receive<TransactionInitData>()
+
+          val transaction = TransactionController.update(user.account!!, transactionInit);
+
+          call.respondText { Json.encodeToString(ApiResponse(ApiResponseStatus.Ok, null, TransactionData.getSerializable(transaction))) }
+        } catch (error: Error) {
+          call.respondText { Json.encodeToString(ApiResponse(ApiResponseStatus.Error, error.localizedMessage, "")) }
+        }
+      }
+    }
+    post("/api/v1/transaction/remove") {
+      val principal = call.principal<JWTPrincipal>()
+      val userId = principal!!.payload.getClaim("user_id").asInt()
+
+      if (userId == null) {
+        call.respondText(Json.encodeToString(ApiResponse(ApiResponseStatus.Error, "InvalidTokenException", "")))
+      } else {
+        try {
+          val user = UserController.getUser(userId)
+          if (user.account == null) {
+            throw Error(Exceptions.NoUserAccountException.name)
+          }
+          val transactionInit = call.receive<DefaultInstanceInit>()
+          TransactionController.remove(user.account!!, transactionInit);
+
+          call.respondText { Json.encodeToString(ApiResponse(ApiResponseStatus.Ok, null, "")) }
         } catch (error: Error) {
           call.respondText { Json.encodeToString(ApiResponse(ApiResponseStatus.Error, error.localizedMessage, "")) }
         }
@@ -64,26 +94,13 @@ fun Route.TransactionControllerRoutes() {
       } else {
         try {
           val user = UserController.getUser(userId)
-          if (user.accountId == null) {
+          val page = call.request.queryParameters["p"]?.toInt() ?: 1;
+          if (user.account == null) {
             throw Error(Exceptions.NoUserAccountException.name)
           }
+          val transactions = TransactionController.getList(user.account!!, page)
 
-          val account = AccountController.getAccount(user.accountId!!)
-          val transactions = TransactionController.getAll(account)
-
-          call.respondText { Json.encodeToString(ApiResponse(ApiResponseStatus.Ok, null, transactions.map { TransactionData(
-              id = it.id,
-              type = it.type,
-              comment = it.comment,
-              cost = it.cost,
-              createdAt = it.createdAt.toString(),
-              updatedAt = it.updatedAt.toString(),
-              accountId = it.accountId,
-              userId = it.userId,
-              categoryId = it.categoryId,
-              from = it.from,
-              to = it.to,
-            )}
+          call.respondText { Json.encodeToString(ApiResponse(ApiResponseStatus.Ok, null, transactions.map { TransactionData.getSerializable(it) }
           ))}
         } catch (error: Error) {
           call.respondText { Json.encodeToString(ApiResponse(ApiResponseStatus.Error, error.localizedMessage, "")) }

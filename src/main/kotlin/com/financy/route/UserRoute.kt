@@ -51,14 +51,7 @@ fun Route.UserControllerRoutes() {
 
         call.respondText(
           Json.encodeToString(
-            ApiResponse(status = ApiResponseStatus.Ok, null, UserData(
-          id = user.id,
-          name = user.name,
-          email = user.email,
-          createdAt = user.createdAt.toString(),
-          updatedAt = user.updatedAt.toString(),
-        )
-            )
+            ApiResponse(status = ApiResponseStatus.Ok, null, UserData.getSerializable(user))
           ));
       } catch(error: Error) {
         println("Error while fetching user ${error.localizedMessage}")

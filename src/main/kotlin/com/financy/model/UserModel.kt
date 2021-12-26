@@ -14,7 +14,7 @@ object UsersSchema: Table<User>("t_users") {
   var name = varchar("name").bindTo { it.name }
   var email = varchar("email").bindTo { it.email }
   var password = varchar("password").bindTo { it.password }
-  var accountId= int("account_id").bindTo { it.accountId }
+  var accountId= int("account_id").references(AccountsSchema) { it.account }
   var createdAt = date("created_at").bindTo { it.createdAt }
   var updatedAt = date("updated_at").bindTo { it.updatedAt }
 }
@@ -37,9 +37,23 @@ data class UserData(
   val id: Int,
   var name: String,
   var email: String,
+  var account: AccountData?,
   var createdAt: String,
   var updatedAt: String?
-)
+) {
+  companion object {
+    fun getSerializable(user: User, recursive: Boolean = true): UserData {
+      return UserData(
+        id = user.id,
+        name = user.name,
+        email = user.email ,
+        account = if (user.account != null && recursive) AccountData.getSerializable(user.account!!, false) else null,
+        createdAt = user.createdAt.toString(),
+        updatedAt = user.updatedAt.toString(),
+      )
+    }
+  }
+}
 
 interface User: Entity<User> {
   companion object: Entity.Factory<User>()
@@ -48,7 +62,7 @@ interface User: Entity<User> {
   var name: String
   var email: String
   var password: String
-  var accountId: Int?
+  var account: Account?
   var createdAt: LocalDate
   var updatedAt: LocalDate?
 }

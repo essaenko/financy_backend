@@ -1,17 +1,13 @@
 package com.financy.route
 
-import com.financy.controller.AccountController
 import com.financy.controller.TransactionController
 import com.financy.controller.UserController
-import com.financy.model.TransactionData
-import com.financy.model.TransactionInitData
-import com.financy.utils.ApiResponse
-import com.financy.utils.ApiResponseStatus
-import com.financy.utils.DefaultInstanceInit
-import com.financy.utils.Exceptions
+import com.financy.model.*
+import com.financy.utils.*
 import io.ktor.application.*
 import io.ktor.auth.*
 import io.ktor.auth.jwt.*
+import io.ktor.http.*
 import io.ktor.request.*
 import io.ktor.response.*
 import io.ktor.routing.*
@@ -56,7 +52,7 @@ fun Route.TransactionControllerRoutes() {
           }
           val transactionInit = call.receive<TransactionInitData>()
 
-          val transaction = TransactionController.update(user.account!!, transactionInit);
+          val transaction = TransactionController.update(user.account!!, transactionInit)
 
           call.respondText { Json.encodeToString(ApiResponse(ApiResponseStatus.Ok, null, TransactionData.getSerializable(transaction))) }
         } catch (error: Error) {
@@ -77,7 +73,7 @@ fun Route.TransactionControllerRoutes() {
             throw Error(Exceptions.NoUserAccountException.name)
           }
           val transactionInit = call.receive<DefaultInstanceInit>()
-          TransactionController.remove(user.account!!, transactionInit);
+          TransactionController.remove(user.account!!, transactionInit)
 
           call.respondText { Json.encodeToString(ApiResponse(ApiResponseStatus.Ok, null, "")) }
         } catch (error: Error) {
@@ -86,6 +82,8 @@ fun Route.TransactionControllerRoutes() {
       }
     }
     get("/api/v1/transaction") {
+      val metrics = RequestMetrics.initializeRequestMetrics()
+      val requestTimer = metrics[0].startTimer()
       val principal = call.principal<JWTPrincipal>()
       val userId = principal!!.payload.getClaim("user_id").asInt()
 
@@ -93,15 +91,60 @@ fun Route.TransactionControllerRoutes() {
         call.respondText(Json.encodeToString(ApiResponse(ApiResponseStatus.Error, "InvalidTokenException", "")))
       } else {
         try {
+          val userQueryTimer = metrics[1].startTimer()
           val user = UserController.getUser(userId)
-          val page = call.request.queryParameters["p"]?.toInt() ?: 1;
+          userQueryTimer.observeDuration()
+
+          val query: Parameters = call.request.queryParameters
+          val filters = TransactionFiltersInit.getValidInstance(
+            type = query["type"],
+            dateFrom = query["dateFrom"],
+            dateTo = query["dateTo"],
+            date = query["date"],
+            category = query["category"],
+            page = query["page"],
+            perPage = query["perPage"],
+          )
+
           if (user.account == null) {
             throw Error(Exceptions.NoUserAccountException.name)
           }
-          val transactions = TransactionController.getList(user.account!!, page)
+          val dbQueryTimer = metrics[2].startTimer()
+          val response = TransactionController.getList(user.account!!, filters)
+          dbQueryTimer.observeDuration()
 
-          call.respondText { Json.encodeToString(ApiResponse(ApiResponseStatus.Ok, null, transactions.map { TransactionData.getSerializable(it) }
-          ))}
+          val responseEncodingTimer = metrics[3].startTimer()
+          val responseText = Json.encodeToString(
+            ApiResponse(
+              ApiResponseStatus.Ok,
+              null,
+              response
+            )
+          )
+          responseEncodingTimer.observeDuration()
+
+          call.respondText { responseText }
+          requestTimer.observeDuration()
+        } catch (error: Error) {
+          call.respondText { Json.encodeToString(ApiResponse(ApiResponseStatus.Error, error.localizedMessage, "")) }
+        }
+      }
+    }
+    get("/api/v1/transaction/mock") {
+      val principal = call.principal<JWTPrincipal>()
+      val userId = principal!!.payload.getClaim("user_id").asInt()
+
+      if (userId == null || userId != 7) {
+        call.respondText(Json.encodeToString(ApiResponse(ApiResponseStatus.Error, "InvalidTokenException", "")))
+      } else {
+        try {
+          val user = UserController.getUser(userId)
+          if (user.account == null) {
+            throw Error(Exceptions.NoUserAccountException.name)
+          }
+          TransactionController.generateTestTransactions(user, user.account!!);
+
+          call.respondText { Json.encodeToString(ApiResponse(ApiResponseStatus.Ok, null, "")) }
         } catch (error: Error) {
           call.respondText { Json.encodeToString(ApiResponse(ApiResponseStatus.Error, error.localizedMessage, "")) }
         }

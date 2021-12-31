@@ -9,12 +9,22 @@ import io.ktor.auth.*
 import io.ktor.auth.jwt.*
 import io.ktor.features.*
 import io.ktor.http.*
+import io.ktor.metrics.micrometer.*
 import io.ktor.response.*
 import io.ktor.routing.*
 import io.ktor.server.engine.*
 import io.ktor.server.netty.*
 import io.ktor.serialization.*
+import io.micrometer.core.instrument.Clock
+import io.micrometer.core.instrument.binder.jvm.JvmGcMetrics
+import io.micrometer.core.instrument.binder.jvm.JvmMemoryMetrics
+import io.micrometer.core.instrument.binder.system.ProcessorMetrics
+import io.micrometer.prometheus.PrometheusConfig
+import io.micrometer.prometheus.PrometheusMeterRegistry
+import io.prometheus.client.CollectorRegistry
 
+val collectorRegistry = CollectorRegistry()
+val appMetricsRegistry = PrometheusMeterRegistry(PrometheusConfig.DEFAULT, collectorRegistry, Clock.SYSTEM)
 
 fun initWebServer() {
   embeddedServer(Netty, port = 80) {
@@ -55,6 +65,14 @@ fun initWebServer() {
         }
       }
     }
+    install(MicrometerMetrics) {
+      registry = appMetricsRegistry
+      meterBinders = listOf(
+        JvmMemoryMetrics(),
+        JvmGcMetrics(),
+        ProcessorMetrics(),
+      )
+    }
 
     routing {
       UserControllerRoutes()
@@ -64,6 +82,9 @@ fun initWebServer() {
       PaymentMethodControllerRoutes()
       get("/") {
         call.respondText("API Home page")
+      }
+      get("/metrics") {
+        call.respond(appMetricsRegistry.scrape())
       }
     }
   }.start(wait = true)

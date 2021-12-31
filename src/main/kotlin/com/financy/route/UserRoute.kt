@@ -9,6 +9,7 @@ import com.financy.utils.ApiResponseStatus
 import io.ktor.application.*
 import io.ktor.auth.*
 import io.ktor.auth.jwt.*
+import io.ktor.http.*
 import io.ktor.request.*
 import io.ktor.response.*
 import io.ktor.routing.*
@@ -25,6 +26,7 @@ fun Route.UserControllerRoutes() {
       call.respondText(Json.encodeToString(ApiResponse(status = ApiResponseStatus.Ok, null, token)))
     } catch(error: Error) {
       println("Error while sending token ${error.localizedMessage}");
+      call.response.status(HttpStatusCode.Unauthorized);
       call.respondText(Json.encodeToString(ApiResponse(status = ApiResponseStatus.Error, error.localizedMessage, "")))
     }
   }

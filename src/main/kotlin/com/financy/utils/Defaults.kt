@@ -1,6 +1,7 @@
 package com.financy.utils
 
 import com.financy.model.CategoryType
+import com.financy.model.TransactionType
 import kotlinx.serialization.Serializable
 
 data class DefaultCategoryData(
@@ -9,12 +10,55 @@ data class DefaultCategoryData(
    val children: Array<DefaultCategoryData>? = null,
 )
 
+
+@Serializable
+data class CollectionResponsePayload<T>(
+  val total: Int,
+  val elements: Int,
+  val list: List<T>,
+)
+
+@Serializable
+data class TransactionFiltersInit(
+  val type: TransactionType?,
+  val dateFrom: Long?,
+  val dateTo: Long?,
+  val date: Long?,
+  val category: Int?,
+  val page: Int = 1,
+  val perPage: Int = 20,
+) {
+  companion object {
+    fun getValidInstance(
+      type: String?,
+      dateFrom: String?,
+      dateTo: String?,
+      date: String?,
+      category: String?,
+      page: String?,
+      perPage: String?,
+    ): TransactionFiltersInit {
+      val isValidTransactionType = TransactionType.values().map { it.toString() }.contains(type.toString())
+
+      return TransactionFiltersInit(
+        type = if(isValidTransactionType) TransactionType.valueOf(type.toString()) else null,
+        dateFrom = dateFrom?.toLongOrNull(),
+        dateTo = dateTo?.toLongOrNull(),
+        date = date?.toLongOrNull(),
+        category = category?.toIntOrNull(),
+        page = page?.toIntOrNull() ?: 1,
+        perPage = perPage?.toIntOrNull() ?: 20,
+      )
+    }
+  }
+}
+
 @Serializable
 data class DefaultInstanceInit(
   val id: Int,
 )
 
-val defaultCategoriesData = arrayOf<DefaultCategoryData>(
+val defaultCategoriesData = arrayOf(
   DefaultCategoryData(
      name = "Unsorted",
      type = CategoryType.Income

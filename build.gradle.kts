@@ -1,6 +1,10 @@
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
-val ktor_version = "1.6.7"
-val prometheus_version = "1.8.1";
+val ktor_core_version = "2.0.2"
+val ktor_deps_version = "1.6.8"
+val prometheus_version = "1.9.0"
+val ktorm_version = "3.5.0"
+val ktor_serializer_version = "1.3.3"
+val logback_version = "1.2.11"
 
 plugins {
     kotlin("jvm") version "1.5.10"
@@ -18,20 +22,23 @@ repositories {
 
 dependencies {
     testImplementation(kotlin("test"))
-    implementation("io.ktor:ktor-server-core:$ktor_version")
-    implementation("io.ktor:ktor-server-netty:$ktor_version")
-    implementation("io.ktor:ktor-metrics-micrometer:$ktor_version")
-    implementation("io.micrometer:micrometer-registry-prometheus:$prometheus_version")
-    implementation("io.ktor:ktor-auth:$ktor_version")
-    implementation("io.ktor:ktor-auth-jwt:$ktor_version")
-    implementation("io.ktor:ktor-serialization:$ktor_version")
+    implementation("io.ktor:ktor-server-core:$ktor_core_version")
+    implementation("io.ktor:ktor-server-netty:$ktor_core_version")
+    implementation("io.ktor:ktor-server-cors:$ktor_core_version")
+    implementation("io.ktor:ktor-server-content-negotiation:$ktor_core_version")
+    implementation("io.ktor:ktor-serialization-kotlinx-json:$ktor_core_version")
+    implementation("io.ktor:ktor-server-auth:$ktor_core_version")
+    implementation("io.ktor:ktor-server-auth-jwt:$ktor_core_version")
+    implementation("io.ktor:ktor-metrics-micrometer:$ktor_deps_version")
 
-    implementation("org.ktorm:ktorm-core:3.4.1")
-    implementation("org.ktorm:ktorm-support-mysql:3.4.1")
-    implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.3.1")
+    implementation("io.ktor:ktor-server-metrics-micrometer:$ktor_core_version")
+    implementation("io.micrometer:micrometer-registry-prometheus:$prometheus_version")
+
+    implementation("org.ktorm:ktorm-core:$ktorm_version")
+    implementation("org.ktorm:ktorm-support-mysql:$ktorm_version")
 
     implementation(files("lib/mysql-connector-java-8.0.27.jar"))
-    implementation("ch.qos.logback:logback-classic:1.2.10")
+    implementation("ch.qos.logback:logback-classic:$logback_version")
 }
 
 tasks.test {

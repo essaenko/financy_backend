@@ -1,19 +1,17 @@
 package com.financy.route
 
-import com.financy.controller.AccountController
 import com.financy.controller.CategoryController
 import com.financy.controller.UserController
 import com.financy.model.*
 import com.financy.utils.ApiResponse
 import com.financy.utils.ApiResponseStatus
 import com.financy.utils.Exceptions
-import io.ktor.application.*
-import io.ktor.auth.*
-import io.ktor.auth.jwt.*
-import io.ktor.http.*
-import io.ktor.request.*
-import io.ktor.response.*
-import io.ktor.routing.*
+import io.ktor.server.application.*
+import io.ktor.server.auth.*
+import io.ktor.server.auth.jwt.*
+import io.ktor.server.request.*
+import io.ktor.server.response.*
+import io.ktor.server.routing.*
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import org.slf4j.LoggerFactory
@@ -63,7 +61,7 @@ fun Route.CategoryControllerRoutes() {
 
           call.respondText { Json.encodeToString(ApiResponse(ApiResponseStatus.Ok, null, categories.map { CategoryData.getSerializable(it) })) }
         } catch (error: Error) {
-          val logger = LoggerFactory.getLogger("Financy");
+          val logger = LoggerFactory.getLogger("Financy")
           logger.warn(error.stackTraceToString())
           call.respondText(Json.encodeToString(ApiResponse(ApiResponseStatus.Error, error.localizedMessage, "")))
         }

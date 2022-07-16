@@ -6,13 +6,13 @@ import com.financy.model.RegistrationCredentials
 import com.financy.model.UserData
 import com.financy.utils.ApiResponse
 import com.financy.utils.ApiResponseStatus
-import io.ktor.application.*
-import io.ktor.auth.*
-import io.ktor.auth.jwt.*
 import io.ktor.http.*
-import io.ktor.request.*
-import io.ktor.response.*
-import io.ktor.routing.*
+import io.ktor.server.application.*
+import io.ktor.server.auth.*
+import io.ktor.server.auth.jwt.*
+import io.ktor.server.request.*
+import io.ktor.server.response.*
+import io.ktor.server.routing.*
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 
@@ -25,8 +25,8 @@ fun Route.UserControllerRoutes() {
 
       call.respondText(Json.encodeToString(ApiResponse(status = ApiResponseStatus.Ok, null, token)))
     } catch(error: Error) {
-      println("Error while sending token ${error.localizedMessage}");
-      call.response.status(HttpStatusCode.Unauthorized);
+      println("Error while sending token ${error.localizedMessage}")
+      call.response.status(HttpStatusCode.Unauthorized)
       call.respondText(Json.encodeToString(ApiResponse(status = ApiResponseStatus.Error, error.localizedMessage, "")))
     }
   }
@@ -54,7 +54,7 @@ fun Route.UserControllerRoutes() {
         call.respondText(
           Json.encodeToString(
             ApiResponse(status = ApiResponseStatus.Ok, null, UserData.getSerializable(user))
-          ));
+          ))
       } catch(error: Error) {
         println("Error while fetching user ${error.localizedMessage}")
         call.respondText(Json.encodeToString(ApiResponse(status = ApiResponseStatus.Error, error.localizedMessage, "")))

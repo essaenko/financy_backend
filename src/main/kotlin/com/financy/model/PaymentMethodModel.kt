@@ -14,7 +14,7 @@ object PaymentMethodSchema: Table<PaymentMethod>("t_payments") {
   val accountId = int("account_id").references(AccountsSchema) { it.account }
   val name = varchar("name").bindTo { it.name }
   val description = varchar("description").bindTo { it.description }
-  val remains = int("remains").bindTo { it.remains }
+  val remains = float("remains").bindTo { it.remains }
   val active = boolean("active").bindTo { it.active }
   val createdAt = date("created_at").bindTo { it.createdAt }
   val updatedAt = date("updated_at").bindTo { it.updatedAt }
@@ -26,7 +26,7 @@ data class PaymentMethodData(
   var account: AccountData,
   var name: String,
   var description: String,
-  var remains: Int,
+  var remains: Float,
   val createdAt: String,
   var updatedAt: String?,
 ) {
@@ -50,7 +50,7 @@ data class PaymentMethodInitData(
   val id: Int? = null,
   val name: String,
   val description: String? = "",
-  val remains: Int,
+  val remains: Float,
 )
 
 interface PaymentMethod: Entity<PaymentMethod> {
@@ -60,7 +60,7 @@ interface PaymentMethod: Entity<PaymentMethod> {
   var account: Account
   var name: String
   var description: String
-  var remains: Int
+  var remains: Float
   var active: Boolean
   var createdAt: LocalDate
   var updatedAt: LocalDate?

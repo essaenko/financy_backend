@@ -1,20 +1,20 @@
 package com.financy
 
 import com.auth0.jwt.JWT
-
 import com.auth0.jwt.algorithms.Algorithm
 import com.financy.route.*
-import io.ktor.application.*
-import io.ktor.auth.*
-import io.ktor.auth.jwt.*
-import io.ktor.features.*
+import io.ktor.server.application.*
+import io.ktor.server.auth.*
 import io.ktor.http.*
-import io.ktor.metrics.micrometer.*
-import io.ktor.response.*
-import io.ktor.routing.*
+import io.ktor.server.response.*
+import io.ktor.server.routing.*
 import io.ktor.server.engine.*
 import io.ktor.server.netty.*
-import io.ktor.serialization.*
+import io.ktor.serialization.kotlinx.json.*
+import io.ktor.server.auth.jwt.*
+import io.ktor.server.metrics.micrometer.*
+import io.ktor.server.plugins.contentnegotiation.*
+import io.ktor.server.plugins.cors.routing.*
 import io.micrometer.core.instrument.Clock
 import io.micrometer.core.instrument.binder.jvm.JvmGcMetrics
 import io.micrometer.core.instrument.binder.jvm.JvmMemoryMetrics
@@ -29,20 +29,22 @@ val appMetricsRegistry = PrometheusMeterRegistry(PrometheusConfig.DEFAULT, colle
 fun initWebServer() {
   embeddedServer(Netty, port = 80) {
     install(CORS) {
-      host("0.0.0.0:3000")
-      host("127.0.0.1:3000")
-      host("localhost:3000")
-      host("localhost")
+      allowHost("0.0.0.0:3000")
+      allowHost("127.0.0.1:3000")
+      allowHost("localhost:3000")
+      allowHost("localhost")
+      allowHost("192.168.0.137")
+      allowHost("192.168.0.137:3000")
 
-      method(HttpMethod.Options)
-      method(HttpMethod.Put)
-      method(HttpMethod.Patch)
-      method(HttpMethod.Delete)
-      method(HttpMethod.Post)
-      method(HttpMethod.Get)
+      allowMethod(HttpMethod.Options)
+      allowMethod(HttpMethod.Put)
+      allowMethod(HttpMethod.Patch)
+      allowMethod(HttpMethod.Delete)
+      allowMethod(HttpMethod.Post)
+      allowMethod(HttpMethod.Get)
 
-      header(HttpHeaders.ContentType)
-      header(HttpHeaders.Authorization)
+      allowHeader(HttpHeaders.ContentType)
+      allowHeader(HttpHeaders.Authorization)
     }
     install(ContentNegotiation) {
       json()
@@ -57,21 +59,13 @@ fun initWebServer() {
 
         validate { credential ->
           if (credential.payload.getClaim("email").asString() != "") {
-            JWTPrincipal(credential.payload);
+            JWTPrincipal(credential.payload)
           } else {
             println("Failed credentials ${credential.payload}")
             null
           }
         }
       }
-    }
-    install(MicrometerMetrics) {
-      registry = appMetricsRegistry
-      meterBinders = listOf(
-        JvmMemoryMetrics(),
-        JvmGcMetrics(),
-        ProcessorMetrics(),
-      )
     }
 
     routing {
@@ -80,6 +74,8 @@ fun initWebServer() {
       CategoryControllerRoutes()
       TransactionControllerRoutes()
       PaymentMethodControllerRoutes()
+      StatisticControllerRoutes()
+      FamilyRequestRoutes()
       get("/") {
         call.respondText("API Home page")
       }
@@ -87,6 +83,16 @@ fun initWebServer() {
         call.respond(appMetricsRegistry.scrape())
       }
     }
+    fun Application.module() {
+      install(MicrometerMetrics) {
+        registry = appMetricsRegistry
+        meterBinders = listOf(
+          JvmMemoryMetrics(),
+          JvmGcMetrics(),
+          ProcessorMetrics(),
+        )
+      }
+    }
   }.start(wait = true)
-  println("Web server successfully started");
+  println("Web server successfully started")
 }

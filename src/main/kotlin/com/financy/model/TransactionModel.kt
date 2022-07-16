@@ -5,9 +5,9 @@ import org.ktorm.database.Database
 import org.ktorm.entity.Entity
 import org.ktorm.entity.sequenceOf
 import org.ktorm.schema.*
-import java.time.LocalDate
+import java.time.LocalDateTime
 
-val Database.Transactions get() = this.sequenceOf(TransactionsSchema);
+val Database.Transactions get() = this.sequenceOf(TransactionsSchema)
 
 enum class TransactionType {
   Income,
@@ -17,15 +17,15 @@ enum class TransactionType {
 object TransactionsSchema: Table<Transaction>("t_transactions") {
   val id = int("id").primaryKey().bindTo { it.id }
   val type = enum<TransactionType>("type").bindTo { it.type }
-  val cost = int("cost").bindTo { it.cost }
+  val cost = float("cost").bindTo { it.cost }
   val comment = varchar("comment").bindTo { it.comment }
   val accountId = int("account_id").references(AccountsSchema) { it.account }
   val userId = int("user_id").references(UsersSchema) { it.user }
   val categoryId = int("category_id").references(CategoriesSchema) { it.category }
   val from = int("from_id").references(PaymentMethodSchema) { it.from }
   val to = int("to_id").references(PaymentMethodSchema) { it.to }
-  val createdAt = date("created_at").bindTo { it.createdAt }
-  val updatedAt = date("updated_at").bindTo { it.updatedAt }
+  val createdAt = datetime("created_at").bindTo { it.createdAt }
+  val updatedAt = datetime("updated_at").bindTo { it.updatedAt }
 }
 
 @Serializable
@@ -35,7 +35,7 @@ data class TransactionData(
   val user: UserData,
   val category: CategoryData,
   val type: TransactionType,
-  val cost: Int,
+  val cost: Float,
   val from: PaymentMethodData,
   val to: PaymentMethodData?,
   val date: String,
@@ -69,7 +69,7 @@ data class TransactionInitData (
   val to: Int? = null,
   val type: String,
   val category: Int,
-  val cost: Int,
+  val cost: Float,
   val comment: String = "",
   val from: Int,
   val date: Long? = null,
@@ -83,10 +83,10 @@ interface Transaction: Entity<Transaction> {
   var user: User
   var category: Category
   var type: TransactionType
-  var cost: Int
+  var cost: Float
   var comment: String
   var from: PaymentMethod
   var to: PaymentMethod?
-  var createdAt: LocalDate
-  var updatedAt: LocalDate?
+  var createdAt: LocalDateTime
+  var updatedAt: LocalDateTime?
 }

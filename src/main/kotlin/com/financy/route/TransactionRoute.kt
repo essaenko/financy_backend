@@ -4,13 +4,13 @@ import com.financy.controller.TransactionController
 import com.financy.controller.UserController
 import com.financy.model.*
 import com.financy.utils.*
-import io.ktor.application.*
-import io.ktor.auth.*
-import io.ktor.auth.jwt.*
 import io.ktor.http.*
-import io.ktor.request.*
-import io.ktor.response.*
-import io.ktor.routing.*
+import io.ktor.server.application.*
+import io.ktor.server.auth.*
+import io.ktor.server.auth.jwt.*
+import io.ktor.server.request.*
+import io.ktor.server.response.*
+import io.ktor.server.routing.*
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 
@@ -142,7 +142,7 @@ fun Route.TransactionControllerRoutes() {
           if (user.account == null) {
             throw Error(Exceptions.NoUserAccountException.name)
           }
-          TransactionController.generateTestTransactions(user, user.account!!);
+          TransactionController.generateTestTransactions(user, user.account!!)
 
           call.respondText { Json.encodeToString(ApiResponse(ApiResponseStatus.Ok, null, "")) }
         } catch (error: Error) {

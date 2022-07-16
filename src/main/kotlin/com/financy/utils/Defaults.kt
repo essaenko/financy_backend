@@ -19,6 +19,41 @@ data class CollectionResponsePayload<T>(
 )
 
 @Serializable
+data class StatisticParametersInit(
+  val dateFrom: Long,
+  val dateTo: Long,
+  val type: TransactionType?,
+  val user: Int?,
+  val category: Int?,
+) {
+  companion object {
+    fun getValidInstance(
+      dateFrom: String?,
+      dateTo: String?,
+      type: String?,
+      user: String?,
+      category: String?,
+    ): StatisticParametersInit {
+      val isValidTransactionType = TransactionType.values().map { it.toString() }.contains(type.toString())
+      val categoryID = category?.toIntOrNull()
+      val userID = user?.toIntOrNull()
+
+      if (dateFrom?.toLongOrNull() == null || dateTo?.toLongOrNull() == null) {
+        throw Error(Exceptions.BadRequestException.name)
+      }
+
+      return StatisticParametersInit(
+        type = if(isValidTransactionType) TransactionType.valueOf(type.toString()) else null,
+        dateFrom = dateFrom.toLong(),
+        dateTo = dateTo.toLong(),
+        category = if (categoryID != null && categoryID > 0) categoryID else null,
+        user = if (userID != null && userID > 0) userID else null,
+      )
+    }
+  }
+}
+
+@Serializable
 data class TransactionFiltersInit(
   val type: TransactionType?,
   val dateFrom: Long?,

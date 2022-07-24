@@ -27,24 +27,27 @@ val collectorRegistry = CollectorRegistry()
 val appMetricsRegistry = PrometheusMeterRegistry(PrometheusConfig.DEFAULT, collectorRegistry, Clock.SYSTEM)
 
 fun initWebServer() {
-  embeddedServer(Netty, port = 80) {
-    install(CORS) {
-      allowHost("0.0.0.0:3000")
-      allowHost("127.0.0.1:3000")
-      allowHost("localhost:3000")
-      allowHost("localhost")
-      allowHost("192.168.0.137")
-      allowHost("192.168.0.137:3000")
+  embeddedServer(Netty, port = 8080) {
+    if (APP_ENV == "dev") {
+      install(CORS) {
+        allowHost("0.0.0.0:3000")
+        allowHost("127.0.0.1:3000")
+        allowHost("localhost:3000")
+        allowHost("localhost")
+        allowHost("192.168.0.137")
+        allowHost("192.168.0.137:3000")
+        allowHost("financy.live")
 
-      allowMethod(HttpMethod.Options)
-      allowMethod(HttpMethod.Put)
-      allowMethod(HttpMethod.Patch)
-      allowMethod(HttpMethod.Delete)
-      allowMethod(HttpMethod.Post)
-      allowMethod(HttpMethod.Get)
+        allowMethod(HttpMethod.Options)
+        allowMethod(HttpMethod.Put)
+        allowMethod(HttpMethod.Patch)
+        allowMethod(HttpMethod.Delete)
+        allowMethod(HttpMethod.Post)
+        allowMethod(HttpMethod.Get)
 
-      allowHeader(HttpHeaders.ContentType)
-      allowHeader(HttpHeaders.Authorization)
+        allowHeader(HttpHeaders.ContentType)
+        allowHeader(HttpHeaders.Authorization)
+      }
     }
     install(ContentNegotiation) {
       json()
@@ -58,7 +61,7 @@ fun initWebServer() {
         )
 
         validate { credential ->
-          if (credential.payload.getClaim("email").asString() != "") {
+          if (credential.payload.getClaim("session").asString() != "") {
             JWTPrincipal(credential.payload)
           } else {
             println("Failed credentials ${credential.payload}")

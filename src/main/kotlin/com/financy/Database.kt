@@ -10,7 +10,7 @@ fun initDataBase() {
   println("Database init")
 
   dbInstance = Database.connect(
-    "jdbc:mysql://localhost:3306/financy_db",
+    "jdbc:postgresql://localhost:5432/financy_db",
     user = ApplicationConfig.database.user,
     password = ApplicationConfig.database.password,
     logger = ConsoleLogger(threshold = LogLevel.INFO)

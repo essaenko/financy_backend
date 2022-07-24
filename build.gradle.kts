@@ -1,14 +1,17 @@
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 val ktor_core_version = "2.0.2"
 val ktor_deps_version = "1.6.8"
-val prometheus_version = "1.9.0"
-val ktorm_version = "3.5.0"
 val ktor_serializer_version = "1.3.3"
+
+val prometheus_version = "1.9.0"
+
+val ktorm_version = "3.5.0"
+
 val logback_version = "1.2.11"
 
 plugins {
-    kotlin("jvm") version "1.5.10"
-    kotlin("plugin.serialization") version "1.5.31"
+    kotlin("jvm") version "1.6.0"
+    kotlin("plugin.serialization") version "1.6.0"
     application
 }
 
@@ -35,10 +38,13 @@ dependencies {
     implementation("io.micrometer:micrometer-registry-prometheus:$prometheus_version")
 
     implementation("org.ktorm:ktorm-core:$ktorm_version")
-    implementation("org.ktorm:ktorm-support-mysql:$ktorm_version")
+    implementation("org.ktorm:ktorm-support-postgresql:$ktorm_version")
 
-    implementation(files("lib/mysql-connector-java-8.0.27.jar"))
+    implementation("org.litote.kmongo:kmongo:4.6.1")
+    implementation("org.postgresql:postgresql:42.3.6")
     implementation("ch.qos.logback:logback-classic:$logback_version")
+
+    implementation("org.apache.commons:commons-email:1.5")
 }
 
 tasks.test {

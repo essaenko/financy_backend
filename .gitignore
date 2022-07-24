@@ -73,3 +73,4 @@ outTmp/
 /kotlin-native/dist
 kotlin-ide/
 metrics/*
+release.sh

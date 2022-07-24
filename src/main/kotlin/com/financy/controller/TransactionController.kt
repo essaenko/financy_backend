@@ -58,7 +58,7 @@ object TransactionController {
     val id: Int = init.id
     val transaction: Transaction = dbInstance?.Transactions?.find { it.id eq id } ?: throw Error(Exceptions.UnresolvedTransactionException.name)
     if (transaction.account.id != acc.id) {
-      throw Error(Exceptions.UnauthorizedOperationException.name)
+      throw Error(Exceptions.NotPermittedOperation.name)
     }
 
     this.undoTransaction(transaction)
@@ -71,7 +71,7 @@ object TransactionController {
     val transaction: Transaction = dbInstance?.Transactions?.find { it.id eq id } ?: throw Error(Exceptions.UnresolvedTransactionException.name)
 
     if (transaction.account.id != acc.id) {
-      throw Error(Exceptions.UnauthorizedOperationException.name)
+      throw Error(Exceptions.NotPermittedOperation.name)
     }
 
     this.undoTransaction(transaction)

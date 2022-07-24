@@ -34,7 +34,7 @@ object PaymentMethodController {
     val payment: PaymentMethod = dbInstance?.Payments?.find { it.id eq id } ?: throw Error(Exceptions.PaymentMethodNotFoundException.name)
 
     if (payment.account.id != acc.id) {
-      throw Error(Exceptions.UnauthorizedOperationException.name)
+      throw Error(Exceptions.NotPermittedOperation.name)
     }
 
     payment.active = false
@@ -50,7 +50,7 @@ object PaymentMethodController {
     val remains: Float = init.remains
 
     if (payment.account.id != acc.id) {
-      throw Error(Exceptions.UnauthorizedOperationException.name)
+      throw Error(Exceptions.NotPermittedOperation.name)
     }
 
     if (payment.name != name) {
@@ -76,7 +76,6 @@ object PaymentMethodController {
     paymentMethod.remains = newRemains
     var remainsInst = dbInstance?.Remains?.find { (it.payment eq paymentMethod.id) and (it.createdAt eq date.atStartOfDay().toLocalDate()) }
 
-    println("Payment remains: ${paymentMethod.remains}, new remains: $newRemains")
     if (remainsInst == null) {
       remainsInst = Remains {
         payment = paymentMethod.id

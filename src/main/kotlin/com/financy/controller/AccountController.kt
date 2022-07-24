@@ -18,6 +18,16 @@ object AccountController {
     return dbInstance?.Users?.filter { it.accountId eq account.id }?.toList() ?: listOf()
   }
 
+  fun removeUserFromAccount(user: User, email: String) {
+    if (user.account?.owner != user.id) {
+      throw Error(Exceptions.NotPermittedOperation.name)
+    }
+
+    val member = dbInstance?.Users?.find { it.email eq email } ?: throw Error(Exceptions.UserNotFoundException.name)
+    member.account = null
+    member.flushChanges()
+  }
+
   fun create(user: User): Account {
     val account = Account {
       owner = user.id

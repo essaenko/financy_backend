@@ -1,5 +1,6 @@
 package com.financy.route
 
+import com.financy.Session
 import com.financy.controller.FamilyRequestController
 import com.financy.controller.UserController
 import com.financy.model.*
@@ -18,142 +19,165 @@ import kotlinx.serialization.json.Json
 fun Route.FamilyRequestRoutes() {
   authenticate {
     get("/api/v1/family/request") {
-      val principal = call.principal<JWTPrincipal>()
-      val userId: Int? = principal!!.payload.getClaim("user_id").asInt()
-      if (userId != null) {
-        try {
-          val user: User = UserController.getUser(userId)
-          val request: FamilyRequest? = FamilyRequestController.getFamilyRequest(user)
+      try {
+        val session = Session?.getUserSession(call)
+        if (session == null) {
+          call.respondText(Json.encodeToString(ApiResponse(status = ApiResponseStatus.Error, "InvalidTokenException", "")))
 
-          try {
-            if (request != null) {
-              call.respondText(Json.encodeToString(ApiResponse(status = ApiResponseStatus.Ok, null, FamilyRequestData.getSerializable(request))))
-            } else {
-              call.respondText(Json.encodeToString(ApiResponse(status = ApiResponseStatus.Ok, null, "")))
-            }
-          } catch (error: Error) {
-            call.respondText(Json.encodeToString(ApiResponse(status = ApiResponseStatus.Error, error.localizedMessage, "")))
+          return@get
+        }
+        val user: User? = UserController.getUser(session.userId)
+        if (user == null) {
+          call.respondText(Json.encodeToString(ApiResponse(status = ApiResponseStatus.Error, Exceptions.InvalidTokenException.name, "")))
+
+          return@get
+        }
+        val request: FamilyRequest? = FamilyRequestController.getFamilyRequest(user)
+
+        try {
+          if (request != null) {
+            call.respondText(Json.encodeToString(ApiResponse(status = ApiResponseStatus.Ok, null, FamilyRequestData.getSerializable(request))))
+          } else {
+            call.respondText(Json.encodeToString(ApiResponse(status = ApiResponseStatus.Ok, null, "")))
           }
-        } catch(error: Error) {
+        } catch (error: Error) {
+          com.financy.Logger.error(error.localizedMessage, error)
           call.respondText(Json.encodeToString(ApiResponse(status = ApiResponseStatus.Error, error.localizedMessage, "")))
         }
-      } else {
-        call.respondText(Json.encodeToString(ApiResponse(status = ApiResponseStatus.Error, "InvalidTokenException", "")))
+      } catch(error: Error) {
+        com.financy.Logger.error(error.localizedMessage, error)
+        call.respondText(Json.encodeToString(ApiResponse(status = ApiResponseStatus.Error, error.localizedMessage, "")))
       }
     }
     get("/api/v1/family/requests") {
-      val principal = call.principal<JWTPrincipal>()
-      val userId: Int? = principal!!.payload.getClaim("user_id").asInt()
-      if (userId != null) {
+      try {
+        val session = Session?.getUserSession(call)
+        if (session == null) {
+          call.respondText(Json.encodeToString(ApiResponse(status = ApiResponseStatus.Error, "InvalidTokenException", "")))
+
+          return@get
+        }
+        val user: User? = UserController.getUser(session.userId, true)
+        if (user == null) {
+          call.respondText(Json.encodeToString(ApiResponse(status = ApiResponseStatus.Error, Exceptions.InvalidTokenException.name, "")))
+
+          return@get
+        }
+
         try {
-          val user: User = UserController.getUser(userId)
+          val requests = FamilyRequestController.getFamilyRequests(user, user.account as Account)
 
-          if (user.account == null) {
-            throw Error(Exceptions.NoUserAccountException.name)
-          }
-
-          try {
-            val requests = FamilyRequestController.getFamilyRequests(user, user.account as Account)
-
-            call.respondText(Json.encodeToString(ApiResponse(
-              status = ApiResponseStatus.Ok,
-              null,
-              requests.map { FamilyRequestData.getSerializable(it) }
-            )))
-          } catch (error: Error) {
-            call.respondText(Json.encodeToString(ApiResponse(status = ApiResponseStatus.Error, error.localizedMessage, "")))
-          }
-        } catch(error: Error) {
+          call.respondText(Json.encodeToString(ApiResponse(
+            status = ApiResponseStatus.Ok,
+            null,
+            requests.map { FamilyRequestData.getSerializable(it) }
+          )))
+        } catch (error: Error) {
+          com.financy.Logger.error(error.localizedMessage, error)
           call.respondText(Json.encodeToString(ApiResponse(status = ApiResponseStatus.Error, error.localizedMessage, "")))
         }
-      } else {
-        call.respondText(Json.encodeToString(ApiResponse(status = ApiResponseStatus.Error, "InvalidTokenException", "")))
+      } catch(error: Error) {
+        com.financy.Logger.error(error.localizedMessage, error)
+        call.respondText(Json.encodeToString(ApiResponse(status = ApiResponseStatus.Error, error.localizedMessage, "")))
       }
     }
     post("/api/v1/family/request/create") {
-      val principal = call.principal<JWTPrincipal>()
-      val userId: Int? = principal!!.payload.getClaim("user_id").asInt()
-      if (userId != null) {
+      try {
+        val session = Session?.getUserSession(call)
+        if (session == null) {
+          call.respondText(Json.encodeToString(ApiResponse(status = ApiResponseStatus.Error, "InvalidTokenException", "")))
+
+          return@post
+        }
+        val user: User? = UserController.getUser(session.userId)
+        val request = call.receive<FamilyRequestCreateInitData>()
+        if (user == null) {
+          call.respondText(Json.encodeToString(ApiResponse(status = ApiResponseStatus.Error, Exceptions.InvalidTokenException.name, "")))
+
+          return@post
+        }
+
         try {
-          val user: User = UserController.getUser(userId)
-          val request = call.receive<FamilyRequestCreateInitData>()
+          val result = FamilyRequestController.createFamilyRequest(request.email, user)
 
-          try {
-            val result = FamilyRequestController.createFamilyRequest(request.email, user)
-
-            call.respondText(Json.encodeToString(ApiResponse(
-              status = ApiResponseStatus.Ok,
-              null,
-              FamilyRequestData.getSerializable(result)
-            )))
-          } catch (error: Error) {
-            call.respondText(Json.encodeToString(ApiResponse(status = ApiResponseStatus.Error, error.localizedMessage, "")))
-          }
-        } catch(error: Error) {
+          call.respondText(Json.encodeToString(ApiResponse(
+            status = ApiResponseStatus.Ok,
+            null,
+            FamilyRequestData.getSerializable(result)
+          )))
+        } catch (error: Error) {
+          com.financy.Logger.error(error.localizedMessage, error)
           call.respondText(Json.encodeToString(ApiResponse(status = ApiResponseStatus.Error, error.localizedMessage, "")))
         }
-      } else {
-        call.respondText(Json.encodeToString(ApiResponse(status = ApiResponseStatus.Error, "InvalidTokenException", "")))
+      } catch(error: Error) {
+        com.financy.Logger.error(error.localizedMessage, error)
+        call.respondText(Json.encodeToString(ApiResponse(status = ApiResponseStatus.Error, error.localizedMessage, "")))
       }
     }
     post("/api/v1/family/request/approve") {
-      val principal = call.principal<JWTPrincipal>()
-      val userId: Int? = principal!!.payload.getClaim("user_id").asInt()
-      if (userId != null) {
+      try {
+        val session = Session?.getUserSession(call)
+        if (session == null) {
+          call.respondText(Json.encodeToString(ApiResponse(status = ApiResponseStatus.Error, "InvalidTokenException", "")))
+
+          return@post
+        }
+        val user: User? = UserController.getUser(session.userId, true)
+        if (user == null) {
+          call.respondText(Json.encodeToString(ApiResponse(status = ApiResponseStatus.Error, Exceptions.InvalidTokenException.name, "")))
+
+          return@post
+        }
+        val request = call.receive<FamilyRequestInitData>()
+
         try {
-          val user: User = UserController.getUser(userId)
+          val result = FamilyRequestController.acceptFamilyRequest(user, user.account as Account, request.id)
 
-          if (user.account == null) {
-            throw Error(Exceptions.NoUserAccountException.name)
-          }
-          val request = call.receive<FamilyRequestInitData>()
-
-          try {
-            val result = FamilyRequestController.acceptFamilyRequest(user, user.account as Account, request.id)
-
-            call.respondText(Json.encodeToString(ApiResponse(
-              status = ApiResponseStatus.Ok,
-              null,
-              result
-            )))
-          } catch (error: Error) {
-            call.respondText(Json.encodeToString(ApiResponse(status = ApiResponseStatus.Error, error.localizedMessage, "")))
-          }
-        } catch(error: Error) {
+          call.respondText(Json.encodeToString(ApiResponse(
+            status = ApiResponseStatus.Ok,
+            null,
+            result
+          )))
+        } catch (error: Error) {
+          com.financy.Logger.error(error.localizedMessage, error)
           call.respondText(Json.encodeToString(ApiResponse(status = ApiResponseStatus.Error, error.localizedMessage, "")))
         }
-      } else {
-        call.respondText(Json.encodeToString(ApiResponse(status = ApiResponseStatus.Error, "InvalidTokenException", "")))
+      } catch(error: Error) {
+        com.financy.Logger.error(error.localizedMessage, error)
+        call.respondText(Json.encodeToString(ApiResponse(status = ApiResponseStatus.Error, error.localizedMessage, "")))
       }
     }
     post("/api/v1/family/request/reject") {
-      val principal = call.principal<JWTPrincipal>()
-      val userId: Int? = principal!!.payload.getClaim("user_id").asInt()
-      if (userId != null) {
+      try {
+        val session = Session?.getUserSession(call)
+        if (session == null) {
+          call.respondText(Json.encodeToString(ApiResponse(status = ApiResponseStatus.Error, "InvalidTokenException", "")))
+
+          return@post
+        }
+        val user: User? = UserController.getUser(session.userId, true)
+        val request = call.receive<FamilyRequestInitData>()
+        if (user == null) {
+          call.respondText(Json.encodeToString(ApiResponse(status = ApiResponseStatus.Error, Exceptions.InvalidTokenException.name, "")))
+
+          return@post
+        }
+
         try {
-          val user: User = UserController.getUser(userId)
+          val result = FamilyRequestController.rejectFamilyRequest(user, user.account as Account, request.id)
 
-          if (user.account == null) {
-            throw Error(Exceptions.NoUserAccountException.name)
-          }
-          val request = call.receive<FamilyRequestInitData>()
-
-          try {
-            val result = FamilyRequestController.rejectFamilyRequest(user, user.account as Account, request.id)
-
-            call.respondText(Json.encodeToString(ApiResponse(
-              status = ApiResponseStatus.Ok,
-              null,
-              result
-            )))
-          } catch (error: Error) {
-            call.respondText(Json.encodeToString(ApiResponse(status = ApiResponseStatus.Error, error.localizedMessage, "")))
-          }
-        } catch(error: Error) {
+          call.respondText(Json.encodeToString(ApiResponse(
+            status = ApiResponseStatus.Ok,
+            null,
+            result
+          )))
+        } catch (error: Error) {
+          com.financy.Logger.error(error.localizedMessage, error)
           call.respondText(Json.encodeToString(ApiResponse(status = ApiResponseStatus.Error, error.localizedMessage, "")))
         }
-      } else {
-        call.respondText(Json.encodeToString(ApiResponse(status = ApiResponseStatus.Error, "InvalidTokenException", "")))
+      } catch(error: Error) {
+        com.financy.Logger.error(error.localizedMessage, error)
+        call.respondText(Json.encodeToString(ApiResponse(status = ApiResponseStatus.Error, error.localizedMessage, "")))
       }
     }
   }

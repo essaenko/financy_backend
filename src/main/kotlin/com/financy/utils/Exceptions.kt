@@ -1,24 +1,34 @@
 package com.financy.utils
 
 enum class Exceptions {
-  NotPermittedOperation,
-  NoUserAccountException,
-  AccountNotFoundException,
+  //User
   UserNotFoundException,
   InvalidRegistrationCredentialsException,
   InvalidUserCredentialsException,
+  EmailAlreadyRegisteredException,
 
-  UnauthorizedOperationException,
+  //Account
+  NoUserAccountException,
+  AccountNotFoundException,
+
+  //Permissions
+  InvalidTokenException,
+  NotPermittedOperation,
+
+  //Serverside
   InternalServerException,
   BadRequestException,
 
+  //Transaction
   UnresolvedTransactionCategoryException,
   UnresolvedTransactionIdException,
   UnresolvedTransactionException,
   UnresolvedTransactionPaymentMethodException,
 
+  //Category
   UnresolvedCategoryAccountException,
 
+  //Payment
   UnresolvedPaymentMethodIdException,
   PaymentMethodNotFoundException
 }

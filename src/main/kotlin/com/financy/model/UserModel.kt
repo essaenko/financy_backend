@@ -1,10 +1,13 @@
 package com.financy.model
 
+import kotlinx.serialization.Contextual
 import kotlinx.serialization.Serializable
 import org.ktorm.database.Database
 import org.ktorm.entity.Entity
 import org.ktorm.entity.sequenceOf
 import org.ktorm.schema.*
+import org.litote.kmongo.Id
+import org.litote.kmongo.newId
 import java.time.LocalDate
 
 val Database.Users get() = this.sequenceOf(UsersSchema)
@@ -20,7 +23,39 @@ object UsersSchema: Table<User>("t_users") {
 }
 
 @Serializable
-data class Credentials(
+data class SessionDescription(
+  @Contextual val _id: Id<SessionDescription> = newId(),
+  val userAgent: String = "",
+  val createdAt: String = "",
+  var updatedAt: String = "",
+  val userId: Int = 0,
+)
+
+@Serializable
+data class UpdatePasswordCredentials(
+  val currentPassword: String,
+  val newPassword: String,
+)
+@Serializable
+data class ResetPasswordDescription(
+  val email: String,
+  val token: String,
+  val createdAt: String,
+)
+
+@Serializable
+data class ResetPasswordCredentials(
+  val password: String? = null,
+  val token: String? = null,
+)
+
+@Serializable
+data class Email(
+  val email: String? = null,
+)
+
+@Serializable
+data class Credentials (
   val email: String? = null,
   val password: String? = null,
 )

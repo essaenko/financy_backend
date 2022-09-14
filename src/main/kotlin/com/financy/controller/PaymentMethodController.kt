@@ -8,6 +8,7 @@ import org.ktorm.dsl.and
 import org.ktorm.dsl.eq
 import org.ktorm.entity.*
 import java.time.LocalDate
+import java.time.LocalDateTime
 
 object PaymentMethodController {
   fun create(user: User, init: PaymentMethodInitData): PaymentMethod {
@@ -21,7 +22,7 @@ object PaymentMethodController {
       name = init.name
       description = init.description ?: ""
       active = true
-      createdAt = LocalDate.now()
+      createdAt = LocalDateTime.now()
       updatedAt = null
     }
 

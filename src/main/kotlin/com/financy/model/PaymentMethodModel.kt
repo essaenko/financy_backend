@@ -5,7 +5,7 @@ import org.ktorm.database.Database
 import org.ktorm.entity.Entity
 import org.ktorm.entity.sequenceOf
 import org.ktorm.schema.*
-import java.time.LocalDate
+import java.time.LocalDateTime
 
 val Database.PaymentMethods get() = this.sequenceOf(PaymentMethodSchema)
 
@@ -16,8 +16,8 @@ object PaymentMethodSchema: Table<PaymentMethod>("t_payments") {
   val name = varchar("name").bindTo { it.name }
   val description = varchar("description").bindTo { it.description }
   val active = boolean("active").bindTo { it.active }
-  val createdAt = date("created_at").bindTo { it.createdAt }
-  val updatedAt = date("updated_at").bindTo { it.updatedAt }
+  val createdAt = datetime("created_at").bindTo { it.createdAt }
+  val updatedAt = datetime("updated_at").bindTo { it.updatedAt }
 }
 
 @Serializable
@@ -62,6 +62,6 @@ interface PaymentMethod: Entity<PaymentMethod> {
   var name: String
   var description: String
   var active: Boolean
-  var createdAt: LocalDate
-  var updatedAt: LocalDate?
+  var createdAt: LocalDateTime
+  var updatedAt: LocalDateTime?
 }

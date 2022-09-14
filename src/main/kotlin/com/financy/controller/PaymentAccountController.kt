@@ -9,7 +9,7 @@ import org.ktorm.entity.add
 import org.ktorm.entity.filter
 import org.ktorm.entity.find
 import org.ktorm.entity.toList
-import java.time.LocalDate
+import java.time.LocalDateTime
 
 object PaymentAccountController {
   fun getPaymentAccount(id: Int): PaymentAccount? {
@@ -27,7 +27,7 @@ object PaymentAccountController {
       description = init.description ?: ""
       remains = init.remains
       active = true
-      createdAt = LocalDate.now()
+      createdAt = LocalDateTime.now()
       updatedAt = null
     }
 

@@ -36,6 +36,26 @@ fun Route.CategoryControllerRoutes() {
         call.respondText(Json.encodeToString(ApiResponse(ApiResponseStatus.Error, error.localizedMessage, "")))
       }
     }
+    post("/api/v1/category/update") {
+      try {
+        val session = Session?.getUserSession(call)
+        if (session == null) {
+          call.respondText(Json.encodeToString(ApiResponse(status = ApiResponseStatus.Error, "InvalidTokenException", "")))
+
+          return@post
+        }
+        val user = UserController.getUser(session.userId, true)
+
+
+        val category = call.receive<CategoryInitData>()
+        val categoryInstance = CategoryController.update(user, category)
+
+        call.respondText(Json.encodeToString(ApiResponse(ApiResponseStatus.Ok, null, CategoryData.getSerializable(categoryInstance))))
+      } catch (error: Error) {
+        com.financy.Logger.error(error.localizedMessage, error)
+        call.respondText(Json.encodeToString(ApiResponse(ApiResponseStatus.Error, error.localizedMessage, "")))
+      }
+    }
     get("/api/v1/category") {
       try {
         val session = Session?.getUserSession(call)

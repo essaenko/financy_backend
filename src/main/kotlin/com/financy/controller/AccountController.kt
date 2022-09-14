@@ -11,7 +11,7 @@ import org.ktorm.entity.add
 import org.ktorm.entity.filter
 import org.ktorm.entity.find
 import org.ktorm.entity.toList
-import java.time.LocalDate
+import java.time.LocalDateTime
 
 object AccountController {
   fun getUsers(account: Account): List<User> {
@@ -31,7 +31,7 @@ object AccountController {
   fun create(user: User): Account {
     val account = Account {
       owner = user.id
-      createdAt = LocalDate.now()
+      createdAt = LocalDateTime.now()
       updatedAt = null
     }
     dbInstance?.Accounts?.add(account)

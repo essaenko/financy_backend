@@ -6,16 +6,16 @@ import org.ktorm.database.Database
 import org.ktorm.dsl.eq
 import org.ktorm.entity.*
 import org.ktorm.schema.Table
-import org.ktorm.schema.date
+import org.ktorm.schema.datetime
 import org.ktorm.schema.int
-import java.time.LocalDate
+import java.time.LocalDateTime
 
 val Database.Accounts get() = this.sequenceOf(AccountSchema)
 
 object AccountSchema: Table<Account>("t_accounts") {
   val id = int("id").primaryKey().bindTo { it.id }
-  val createdAt = date("created_at").bindTo { it.createdAt }
-  val updatedAt = date("updated_at").bindTo { it.updatedAt }
+  val createdAt = datetime("created_at").bindTo { it.createdAt }
+  val updatedAt = datetime("updated_at").bindTo { it.updatedAt }
   val ownerId = int("owner_id").bindTo { it.owner }
 }
 
@@ -42,8 +42,8 @@ interface Account: Entity<Account> {
   companion object: Entity.Factory<Account>()
 
   val id: Int
-  var createdAt: LocalDate
-  var updatedAt: LocalDate?
+  var createdAt: LocalDateTime
+  var updatedAt: LocalDateTime?
   var owner: Int
 
   fun getCategories(): List<Category>? {

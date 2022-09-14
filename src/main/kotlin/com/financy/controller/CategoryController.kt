@@ -7,7 +7,7 @@ import com.financy.utils.Exceptions
 import com.financy.utils.defaultCategoriesData
 import org.ktorm.dsl.eq
 import org.ktorm.entity.*
-import java.time.LocalDate
+import java.time.LocalDateTime
 
 object CategoryController {
   fun createDefaultCategoriesForNewAccount(account: Account) {
@@ -20,6 +20,29 @@ object CategoryController {
     return (dbInstance?.Categories?.filter { it.accountId eq account.id })?.toList() ?: listOf()
   }
 
+  fun update(user: User, categoryInit: CategoryInitData): Category {
+    val categoryAcc: Account? = dbInstance?.Accounts?.find { it.id eq user.account!!.id}
+
+    if (categoryAcc != null) {
+      if (categoryInit.id == null) {
+        throw Error(Exceptions.BadRequestException.name)
+      }
+      val category = dbInstance?.Categories?.find { it.id eq categoryInit.id}
+        ?: throw Error(Exceptions.UnresolvedCategoryException.name)
+      category.parent = if (categoryInit.parent != null) dbInstance?.Categories?.find { it.id eq categoryInit.parent } else null
+      category.name = categoryInit.name
+      category.type = TransactionType.valueOf(categoryInit.type)
+      category.mcc = categoryInit.mcc
+      category.updatedAt = LocalDateTime.now()
+
+      category.flushChanges()
+
+      return category
+    } else {
+      throw Error(Exceptions.UnresolvedCategoryAccountException.name)
+    }
+  }
+
   fun create(user: User, categoryInit: CategoryInitData): Category {
     val categoryAcc: Account? = dbInstance?.Accounts?.find { it.id eq user.account!!.id}
 
@@ -30,7 +53,7 @@ object CategoryController {
         name = categoryInit.name
         type = TransactionType.valueOf(categoryInit.type)
         mcc = categoryInit.mcc
-        createdAt = LocalDate.now()
+        createdAt = LocalDateTime.now()
         updatedAt = null
       }
 
@@ -49,7 +72,7 @@ object CategoryController {
       name = data.name
       type = data.type
       mcc = data.mcc
-      createdAt = LocalDate.now()
+      createdAt = LocalDateTime.now()
       updatedAt = null
     }
 

@@ -13,7 +13,7 @@ import org.ktorm.entity.toList
 import org.ktorm.schema.*
 import org.litote.kmongo.Id
 import org.litote.kmongo.newId
-import java.time.LocalDate
+import java.time.LocalDateTime
 
 val Database.Users get() = this.sequenceOf(UsersSchema)
 
@@ -23,8 +23,8 @@ object UsersSchema: Table<User>("t_users") {
   var email = varchar("email").bindTo { it.email }
   var password = varchar("password").bindTo { it.password }
   var accountId= int("account_id").references(AccountSchema) { it.account }
-  var createdAt = date("created_at").bindTo { it.createdAt }
-  var updatedAt = date("updated_at").bindTo { it.updatedAt }
+  var createdAt = datetime("created_at").bindTo { it.createdAt }
+  var updatedAt = datetime("updated_at").bindTo { it.updatedAt }
 }
 
 @Serializable
@@ -103,8 +103,8 @@ interface User: Entity<User> {
   var email: String
   var password: String
   var account: Account?
-  var createdAt: LocalDate
-  var updatedAt: LocalDate?
+  var createdAt: LocalDateTime
+  var updatedAt: LocalDateTime?
 
   fun getPaymentAccounts(): List<PaymentAccount> {
     if (this.account == null) {

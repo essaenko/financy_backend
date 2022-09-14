@@ -29,6 +29,7 @@ enum class Exceptions {
 
   //Category
   UnresolvedCategoryAccountException,
+  UnresolvedCategoryException,
 
   //Payment
   UnresolvedPaymentMethodIdException,

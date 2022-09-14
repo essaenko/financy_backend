@@ -12,7 +12,6 @@ import com.financy.utils.Mail
 import org.ktorm.dsl.eq
 import org.ktorm.entity.add
 import org.ktorm.entity.find
-import java.time.LocalDate
 import java.time.LocalDateTime
 import java.util.*
 import kotlin.collections.HashMap
@@ -48,7 +47,7 @@ object UserController {
         email = credentials.email
         name = credentials.name
         password = Crypto.sha1(credentials.password)
-        createdAt = LocalDate.now()
+        createdAt = LocalDateTime.now()
         updatedAt = null
       }
 

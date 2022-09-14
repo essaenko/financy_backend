@@ -6,7 +6,7 @@ import org.ktorm.database.Database
 import org.ktorm.dsl.eq
 import org.ktorm.entity.*
 import org.ktorm.schema.*
-import java.time.LocalDate
+import java.time.LocalDateTime
 
 val Database.Categories get() = this.sequenceOf(CategoriesSchema)
 
@@ -18,8 +18,8 @@ object CategoriesSchema: Table<Category>("t_categories") {
   val type = enum<TransactionType>("type").bindTo { it.type }
   val mcc = varchar("mcc").bindTo { it.mcc }
   val tags = varchar("tags").bindTo { it.tags }
-  val createdAt = date("created_at").bindTo { it.createdAt }
-  val updatedAt = date("updated_at").bindTo { it.updatedAt }
+  val createdAt = datetime("created_at").bindTo { it.createdAt }
+  val updatedAt = datetime("updated_at").bindTo { it.updatedAt }
 }
 
 @Serializable
@@ -55,6 +55,7 @@ data class CategoryData(
 
 @Serializable
 data class CategoryInitData(
+  val id: Int? = null,
   val name: String,
   val type: String,
   val parent: Int? = null,
@@ -72,8 +73,8 @@ interface Category: Entity<Category> {
   var type: TransactionType
   var mcc: String?
   var tags: String?
-  var createdAt: LocalDate
-  var updatedAt: LocalDate?
+  var createdAt: LocalDateTime
+  var updatedAt: LocalDateTime?
 
   fun getCategories(): List<Category>? {
     return dbInstance?.Categories?.filter { it.parentId eq this.id }?.toList()

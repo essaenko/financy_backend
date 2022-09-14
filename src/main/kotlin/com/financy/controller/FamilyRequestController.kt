@@ -9,7 +9,7 @@ import org.ktorm.entity.add
 import org.ktorm.entity.filter
 import org.ktorm.entity.find
 import org.ktorm.entity.toList
-import java.time.LocalDate
+import java.time.LocalDateTime
 
 object FamilyRequestController {
   fun getFamilyRequests(user: User, account: Account): List<FamilyRequest> {
@@ -31,8 +31,8 @@ object FamilyRequestController {
       val request = FamilyRequest {
         account = accountOwner.account!!.id
         user = fUser.id
-        createdAt = LocalDate.now()
-        updatedAt = LocalDate.now()
+        createdAt = LocalDateTime.now()
+        updatedAt = LocalDateTime.now()
         isActive = true
       }
       dbInstance?.FamilyRequests?.add(request)
